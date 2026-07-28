@@ -12,11 +12,14 @@ function WorkInProgress() {
 						<Image
 							aria-hidden
 							src="/hammer.svg"
-							alt="File icon"
+							alt=""
 							width={35}
 							height={35}
+							className="invert"
 						/>{" "}
-						<p className="text-2xl">Work In Progress...</p>
+						<p className="text-2xl text-slate-200">
+							Work In Progress...
+						</p>
 					</div>
 					<div className="flex items-center justify-center">
 						<a
