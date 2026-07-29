@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <!-- userSpaceOnUse so the legs and the crossbar share one ramp; with the
+         default objectBoundingBox each path would restart its own gradient. -->
+    <linearGradient id="a" gradientUnits="userSpaceOnUse" x1="32" y1="8" x2="32" y2="56">
+      <stop offset="0" stop-color="#efeaff"/>
+      <stop offset="1" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <style>
+    .plate { fill: #0c0a1a }
+    @media (prefers-color-scheme: dark) { .plate { fill: #060509 } }
+  </style>
+  <rect class="plate" width="64" height="64" rx="14"/>
+  <!-- The A is filled outlines, not text or strokes: favicons render outside
+       the page so no webfont is available, and stroke caps notch at the apex.
+       Two separate paths keep the crossbar independent of fill-rule winding. -->
+  <path fill="url(#a)" d="M32 8 L56 56 L44 56 L32 27 L20 56 L8 56 Z"/>
+  <path fill="url(#a)" d="M22 40 L42 40 L42 48 L22 48 Z"/>
+</svg>
