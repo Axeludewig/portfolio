@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm run dev     # Start dev server at http://localhost:3000 (Next.js, hot reload)
 npm run build   # Production build
 npm run start   # Serve the production build
-npm run lint    # Next.js ESLint
+npm run lint    # ESLint (flat config in eslint.config.mjs, eslint-config-next rules)
 ```
 
 There is no test suite configured.
