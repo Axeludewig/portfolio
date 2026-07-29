@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import LandingHero from "./LandingHero";
 import HeroBackground from "@/components/HeroBackground";
 
@@ -25,10 +26,9 @@ export default function Home() {
 					/>
 					LinkedIn
 				</a>
-				<a
+				<Link
 					className="flex items-center gap-2 transition-colors hover:text-white"
 					href="/blog"
-					rel="noopener noreferrer"
 				>
 					<Image
 						aria-hidden
@@ -39,7 +39,7 @@ export default function Home() {
 						className="invert"
 					/>
 					Blog
-				</a>
+				</Link>
 			</footer>
 		</div>
 	);

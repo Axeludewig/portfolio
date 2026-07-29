@@ -1,5 +1,6 @@
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import MatrixGlobe from "@/components/MatrixGlobe";
 import { Button } from "@/components/ui/button";
 import {
@@ -86,10 +87,10 @@ function LandingHero() {
 				</CardContent>
 				<CardFooter>
 					<Button asChild className="w-full">
-						<a href="/projects">
+						<Link href="/projects">
 							View Projects
 							<ArrowUpRight className="size-4" />
-						</a>
+						</Link>
 					</Button>
 				</CardFooter>
 			</Card>

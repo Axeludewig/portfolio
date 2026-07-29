@@ -1,5 +1,6 @@
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 function WorkInProgress() {
@@ -22,12 +23,12 @@ function WorkInProgress() {
 						</p>
 					</div>
 					<div className="flex items-center justify-center">
-						<a
+						<Link
 							href="/"
 							className="flex items-center gap-2 hover:shadow-2xl"
 						>
 							<Button>Go Back</Button>
-						</a>
+						</Link>
 					</div>
 				</div>
 			</main>
