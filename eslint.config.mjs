@@ -17,11 +17,7 @@ const config = [
 		// the rAF loop rather than during render, so the React Compiler's purity
 		// and immutability rules don't apply — they'd only be satisfied by
 		// reallocating buffers every frame.
-		files: [
-			"components/HeroBackground.tsx",
-			"components/MatrixGlobe.tsx",
-			"components/CubeCore.tsx",
-		],
+		files: ["components/HeroBackground.tsx", "components/MatrixGlobe.tsx"],
 		rules: {
 			"react-hooks/purity": "off",
 			"react-hooks/immutability": "off",

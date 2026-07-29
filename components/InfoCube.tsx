@@ -4,13 +4,12 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import CubeCore from "@/components/CubeCore";
 import ScrambleText from "@/components/ScrambleText";
 
 /**
- * The details card as a static CSS cube. Faces don't rotate into view — the
- * content on the front face scrambles out and reassembles as the next face,
- * advancing on a timer and on click.
+ * The details as a CSS cube with content on all four side faces. Advancing
+ * turns the cube a quarter step, so the next face genuinely rotates into view,
+ * and its letters resolve out of matrix noise as the rotation settles.
  *
  * CSS 3D rather than WebGL so the content stays real DOM: selectable text,
  * clickable links, crisp at any DPR, and legible to crawlers.
@@ -35,30 +34,44 @@ const FOCUS = [
 	"Shipping small, iterating fast",
 ];
 
+/**
+ * Order matters: the cube turns -90deg per step, which brings the faces to the
+ * front in exactly this sequence.
+ */
 const FACES = [
-	{ id: "intro", label: "Axel Ludewig", title: "Building web apps that ship" },
-	{ id: "stack", label: "Stack", title: "What I build with" },
-	{ id: "focus", label: "Focus", title: "How I work" },
-	{ id: "links", label: "Elsewhere", title: "Where to find me" },
+	{ id: "intro", side: "cube-front", label: "Axel Ludewig", title: "Building web apps that ship" },
+	{ id: "stack", side: "cube-right", label: "Stack", title: "What I build with" },
+	{ id: "focus", side: "cube-back", label: "Focus", title: "How I work" },
+	{ id: "links", side: "cube-left", label: "Elsewhere", title: "Where to find me" },
 ] as const;
 
 const INTERVAL = 6500; // ms a face holds before advancing
+const SETTLE = 350; // ms into the 900ms turn before the text starts resolving
 
-function FaceBody({ face }: { face: (typeof FACES)[number]["id"] }) {
-	if (face === "intro") {
+function FaceBody({ id, active, turn }: { id: string; active: boolean; turn: number }) {
+	// Only the face being turned into view animates; the others just hold their
+	// finished content, out of sight.
+	const scrambleKey = active ? turn : "idle";
+
+	if (id === "intro") {
 		return (
 			<ScrambleText
+				key={scrambleKey}
 				as="p"
-				delay={340}
+				delay={active ? SETTLE + 190 : 0}
 				className="text-sm leading-relaxed text-slate-300"
 				text="Full-stack software engineer based in Mexico, focused on fast, reliable web applications built end to end."
 			/>
 		);
 	}
 
-	if (face === "stack") {
+	if (id === "stack") {
 		return (
-			<div className="face-rise flex flex-wrap gap-2" style={{ animationDelay: "320ms" }}>
+			<div
+				key={scrambleKey}
+				className="face-rise flex flex-wrap gap-2"
+				style={{ animationDelay: `${SETTLE + 170}ms` }}
+			>
 				{STACK.map((tech) => (
 					<div
 						key={tech.label}
@@ -78,15 +91,18 @@ function FaceBody({ face }: { face: (typeof FACES)[number]["id"] }) {
 		);
 	}
 
-	if (face === "focus") {
+	if (id === "focus") {
 		return (
-			<ul className="space-y-2.5 text-sm leading-snug text-slate-300">
+			<ul key={scrambleKey} className="space-y-2.5 text-sm leading-snug text-slate-300">
 				{FOCUS.map((item, i) => (
 					<li key={item} className="flex gap-2">
 						<span aria-hidden className="text-violet-400">
 							—
 						</span>
-						<ScrambleText text={item} delay={300 + i * 90} />
+						<ScrambleText
+							text={item}
+							delay={active ? SETTLE + 150 + i * 90 : 0}
+						/>
 					</li>
 				))}
 			</ul>
@@ -95,8 +111,9 @@ function FaceBody({ face }: { face: (typeof FACES)[number]["id"] }) {
 
 	return (
 		<div
+			key={scrambleKey}
 			className="face-rise flex flex-col gap-3"
-			style={{ animationDelay: "320ms" }}
+			style={{ animationDelay: `${SETTLE + 170}ms` }}
 		>
 			<Link
 				href="/projects"
@@ -126,23 +143,24 @@ function FaceBody({ face }: { face: (typeof FACES)[number]["id"] }) {
 }
 
 export default function InfoCube() {
-	const [index, setIndex] = React.useState(0);
+	// Counts total quarter turns rather than wrapping, so the cube keeps
+	// rotating the same direction instead of unwinding on every fourth step.
+	const [turn, setTurn] = React.useState(0);
 	const [paused, setPaused] = React.useState(false);
-	const face = FACES[index];
+	const index = turn % FACES.length;
 
-	const advance = React.useCallback(
-		(to?: number) =>
-			setIndex((i) => (to === undefined ? (i + 1) % FACES.length : to)),
-		[]
-	);
+	const goTo = React.useCallback((target: number) => {
+		// Step forward to the requested face, never backward.
+		setTurn((t) => t + ((target - (t % FACES.length)) + FACES.length) % FACES.length);
+	}, []);
 
 	React.useEffect(() => {
 		if (paused) return;
-		// Keyed off index as well as paused, so clicking restarts the dwell
-		// rather than cutting the new face short.
-		const id = setTimeout(() => advance(), INTERVAL);
+		// Keyed on turn as well, so clicking restarts the dwell rather than
+		// cutting the new face short.
+		const id = setTimeout(() => setTurn((t) => t + 1), INTERVAL);
 		return () => clearTimeout(id);
-	}, [index, paused, advance]);
+	}, [turn, paused]);
 
 	return (
 		<div
@@ -150,40 +168,48 @@ export default function InfoCube() {
 			onPointerEnter={() => setPaused(true)}
 			onPointerLeave={() => setPaused(false)}
 		>
-			<CubeCore paused={paused} />
+			<div
+				className="cube mx-auto"
+				style={{ "--turn": `${turn * -90}deg` } as React.CSSProperties}
+			>
+				{FACES.map((face, i) => {
+					const active = i === index;
+					return (
+						<div
+							key={face.id}
+							className={`cube-face ${face.side} cursor-pointer select-none`}
+							aria-hidden={!active}
+							onClick={(e) => {
+								// Let links do their job instead of advancing.
+								if ((e.target as HTMLElement).closest("a")) return;
+								setTurn((t) => t + 1);
+							}}
+						>
+							<ScrambleText
+								key={`${face.id}-label-${active ? turn : "idle"}`}
+								as="p"
+								delay={active ? SETTLE : 0}
+								className="mb-3 text-[10px] font-medium uppercase tracking-[0.3em] text-violet-300/80"
+								text={face.label}
+							/>
+							<ScrambleText
+								key={`${face.id}-title-${active ? turn : "idle"}`}
+								as="h2"
+								delay={active ? SETTLE + 90 : 0}
+								className="mb-4 text-xl font-semibold text-white"
+								text={face.title}
+							/>
+							<div className="flex-1">
+								<FaceBody id={face.id} active={active} turn={turn} />
+							</div>
+							<div
+								className="cube-shade"
+								style={{ opacity: active ? 0 : 0.6 }}
+							/>
+						</div>
+					);
+				})}
 
-			<div className="cube mx-auto">
-				{/* Front — the only face carrying content; the rest are panels
-				    that give the cube its solidity. */}
-				<div
-					className="cube-face cube-front cursor-pointer select-none"
-					onClick={(e) => {
-						// Let links do their job instead of advancing.
-						if ((e.target as HTMLElement).closest("a")) return;
-						advance();
-					}}
-				>
-					<ScrambleText
-						key={`${face.id}-label`}
-						as="p"
-						className="mb-3 text-[10px] font-medium uppercase tracking-[0.3em] text-violet-300/80"
-						text={face.label}
-					/>
-					<ScrambleText
-						key={`${face.id}-title`}
-						as="h2"
-						delay={140}
-						className="mb-4 text-xl font-semibold text-white"
-						text={face.title}
-					/>
-					<div key={face.id} className="flex-1">
-						<FaceBody face={face.id} />
-					</div>
-				</div>
-
-				<div aria-hidden className="cube-face cube-right" />
-				<div aria-hidden className="cube-face cube-back" />
-				<div aria-hidden className="cube-face cube-left" />
 				<div aria-hidden className="cube-face cube-top" />
 				<div aria-hidden className="cube-face cube-bottom" />
 			</div>
@@ -196,7 +222,7 @@ export default function InfoCube() {
 					<button
 						key={f.id}
 						type="button"
-						onClick={() => advance(i)}
+						onClick={() => goTo(i)}
 						aria-label={`Show ${f.label}`}
 						aria-current={i === index}
 						className={
