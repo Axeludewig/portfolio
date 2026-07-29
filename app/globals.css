@@ -166,9 +166,12 @@
   border-radius: 14px;
   padding: 1.75rem;
   overflow: hidden;
+  /* Translucent so the WebGL core behind the face layer reads as being inside
+     the box. Kept dark enough that the content on top stays legible against
+     whatever the core is doing. */
   background:
     linear-gradient(160deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.015)),
-    rgba(10, 8, 22, 0.92);
+    rgba(10, 8, 22, 0.62);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
@@ -180,7 +183,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: rgba(3, 2, 10, 0.9);
+  background: rgba(3, 2, 10, 0.82);
   animation: face-shade 36s linear infinite;
 }
 

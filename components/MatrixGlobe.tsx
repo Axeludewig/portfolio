@@ -3,6 +3,7 @@
 import React, { useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
+import { GLYPHS, ATLAS_COLS, buildGlyphAtlas } from "@/lib/glyph-atlas";
 
 /**
  * A globe built entirely out of characters. Points are spread evenly over a
@@ -10,34 +11,6 @@ import * as THREE from "three";
  * atlas. Glyphs re-roll continuously and flash bright white on change, so the
  * surface reads like matrix rain wrapped around a planet.
  */
-
-const GLYPHS =
-	"アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<>/\\{}[]$#@*+=";
-const ATLAS_COLS = 12;
-const CELL = 64; // px per glyph cell in the atlas
-
-/** Renders every glyph into a grid texture so the shader can index into it. */
-function buildAtlas() {
-	const rows = Math.ceil(GLYPHS.length / ATLAS_COLS);
-	const canvas = document.createElement("canvas");
-	canvas.width = ATLAS_COLS * CELL;
-	canvas.height = rows * CELL;
-	const ctx = canvas.getContext("2d")!;
-	ctx.fillStyle = "#fff";
-	ctx.font = `600 ${CELL * 0.72}px ui-monospace, "SF Mono", Menlo, monospace`;
-	ctx.textAlign = "center";
-	ctx.textBaseline = "middle";
-	for (let i = 0; i < GLYPHS.length; i++) {
-		const col = i % ATLAS_COLS;
-		const row = Math.floor(i / ATLAS_COLS);
-		ctx.fillText(GLYPHS[i], (col + 0.5) * CELL, (row + 0.55) * CELL);
-	}
-	const texture = new THREE.CanvasTexture(canvas);
-	texture.flipY = false; // atlas rows run top-down, like gl_PointCoord
-	texture.minFilter = THREE.LinearFilter;
-	texture.magFilter = THREE.LinearFilter;
-	return { texture, rows };
-}
 
 const vertexShader = /* glsl */ `
   uniform float uTime;
@@ -145,7 +118,7 @@ function GlyphSphere({
 	const { size, viewport, camera, raycaster, pointer } = useThree();
 
 	const { geometry, material, chars, changes } = useMemo(() => {
-		const { texture, rows } = buildAtlas();
+		const { texture, rows } = buildGlyphAtlas();
 
 		const positions = new Float32Array(count * 3);
 		const chars = new Float32Array(count);

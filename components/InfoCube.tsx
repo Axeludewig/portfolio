@@ -1,7 +1,10 @@
+"use client";
+
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
+import CubeCore from "@/components/CubeCore";
 
 /**
  * The details card as a slowly rotating cube. Built with CSS 3D transforms
@@ -39,9 +42,21 @@ function FaceLabel({ children }: { children: React.ReactNode }) {
 }
 
 export default function InfoCube() {
+	// The CSS cube pauses via :hover / :focus-within. The WebGL core can't read
+	// those, so mirror them into state and hand it the same signal — otherwise
+	// the two would drift apart while one is paused.
+	const [paused, setPaused] = React.useState(false);
+
 	return (
-		<div className="cube-scene relative mx-auto w-full max-w-[420px] py-10">
-			<div className="cube mx-auto [--cube-size:280px] sm:[--cube-size:340px]">
+		<div
+			className="cube-scene relative mx-auto w-full max-w-[420px] py-10 [--cube-size:280px] sm:[--cube-size:340px]"
+			onPointerEnter={() => setPaused(true)}
+			onPointerLeave={() => setPaused(false)}
+			onFocus={() => setPaused(true)}
+			onBlur={() => setPaused(false)}
+		>
+			<CubeCore paused={paused} />
+			<div className="cube mx-auto">
 				{/* Front — the pitch */}
 				<div className="cube-face cube-front">
 					<FaceLabel>Axel Ludewig</FaceLabel>
